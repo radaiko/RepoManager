@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.razor">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MudBlazor" Version="8.6.0" />
+    <PackageReference Include="Photino.Blazor" Version="4.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\RM.UI\RM.UI.csproj" />
+    <ProjectReference Include="..\RM.Base\RM.Base.csproj" />
+    <ProjectReference Include="..\RM.Core\RM.Core.csproj" />
+  </ItemGroup>
+
+</Project>

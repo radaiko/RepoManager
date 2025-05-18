@@ -1,12 +1,21 @@
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 
 namespace RM.Core;
 
 public class Folder{
   
   #region Properties -----------------------------------------------------------
+  [JsonIgnore]
   public List<Repo> Repos { get; private set; }
+  [JsonIgnore]
   public long LastAnalyzeTime { get; private set;}
+  public string Path {
+    get => _path;
+    set {
+      _path = value;
+    }
+  }
   #endregion
   
   #region Variables ------------------------------------------------------------

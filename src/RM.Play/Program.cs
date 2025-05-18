@@ -1,5 +1,7 @@
-﻿using RM.Base;
+﻿using System.Collections.ObjectModel;
+using RM.Base;
 using RM.Core;
+using RM.UI;
 
 namespace RM.Playground;
 
@@ -13,8 +15,16 @@ class Program {
       Console.WriteLine("Please provide a path to a git repository.");
       return;
     }
+    var s = Settings.Load();
+
+    return;
     var folderPath = Environment.ExpandEnvironmentVariables(args[0].Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
     var folder = new Folder(folderPath);
+    var settings = new Settings();
+    settings.Folders = new ObservableCollection<Folder> { folder };
+    settings.Save();
+
+    return;
     
     Console.WriteLine($"{folder.Repos.Count} repositories found in {folderPath} with {folder.Repos.Sum(r => r.Branches.Count)} branches in {folder.LastAnalyzeTime} ms");
     // for (int i = 0; i < folder.Repos.Count; i++) {

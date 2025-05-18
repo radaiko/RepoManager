@@ -10,8 +10,7 @@ public static class Logger {
   
   #region Variables ------------------------------------------------------------
   private static readonly string LogFilePath = Path.Combine(
-    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-    "RepoManager",
+    Common.GetAppDataPath(),
     "RepoManager.log"
   );
   #endregion
@@ -23,8 +22,23 @@ public static class Logger {
   public static void Error(string message) {
     Log(LogLevel.Error, message);
   }
+  public static void Error(string message, string exception) {
+    Log(LogLevel.Error, $"{message} - {exception}");
+  }
   public static void Debug(string message) {
     Log(LogLevel.Debug, message);
+  }
+  
+  public static void OpenLogFile() {
+    if (LogToFile) {
+      var logDir = Path.GetDirectoryName(LogFilePath)!;
+      if (!Directory.Exists(logDir))
+        Directory.CreateDirectory(logDir);
+      System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo {
+        FileName = LogFilePath,
+        UseShellExecute = true
+      });
+    }
   }
   #endregion
   

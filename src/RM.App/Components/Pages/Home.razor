@@ -1,0 +1,15 @@
+﻿@page "/"
+
+<PageTitle>Repository List</PageTitle>
+
+<ul>
+    @foreach (var folder in Services.Hub.Settings.Folders) {
+        foreach (var repo in folder.Repos.OrderBy(r => r.Name)) {
+            <li style="background-color:@(repo.IsMainUpToDate ? "inherit" : "yellow")">@repo.Name</li>
+        }
+    }
+</ul>
+
+@code {
+
+}
