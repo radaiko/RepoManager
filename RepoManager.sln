@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RM.Playground", "src\RepoManager\RM.Playground\RM.Playground.csproj", "{0F79E115-0F92-442B-A1A9-FFC9B06D4F2F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RM.Playground", "src\RM.Play\RM.Play.csproj", "{0F79E115-0F92-442B-A1A9-FFC9B06D4F2F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RM.Base", "src\RM.Base\RM.Base.csproj", "{12A0555F-BE0E-405F-949B-C6877BDA9803}"
 EndProject
