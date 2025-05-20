@@ -5,5 +5,12 @@
 <body>
     <app>Loading...</app>
     <script src="_framework/blazor.webview.js"></script>
+    <script>
+        window.scrollToBottom = (element) => {
+            if (element) {
+                element.scrollTop = element.scrollHeight;
+            }
+        };
+    </script>
 </body>
 </html>

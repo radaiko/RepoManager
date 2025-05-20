@@ -8,10 +8,10 @@ public static class Common {
       Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
       "RepoManager"
     );
-  
+
   public static JsonSerializerOptions JsSOptions() => new() {
-      WriteIndented = true,
-      PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-      DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+    WriteIndented = true,
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+  };
 }

@@ -1,16 +1,14 @@
-﻿using System.Collections.ObjectModel;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json;
 using RM.Base;
-using RM.Core;
 
 namespace RM.UI;
 
 public class Settings {
   #region Properties -----------------------------------------------------------
-  public ObservableCollection<Folder> Folders { get; set; } = [];
-  
+  public List<string> Folders { get; set; } = new List<string>();
+
   private LogLevel _logLevel;
+
   public LogLevel LogLevel {
     get => _logLevel;
     set {
@@ -22,6 +20,7 @@ public class Settings {
   }
 
   private bool _logToFile;
+
   public bool LogToFile {
     get => _logToFile;
     set {
@@ -32,31 +31,31 @@ public class Settings {
     }
   }
   #endregion
-  
+
   #region Variables ------------------------------------------------------------
   private static string _settingsPath = Path.Combine(Common.GetAppDataPath(), "settings.json");
   #endregion
-  
-  #region Constructor ----------------------------------------------------------
-  public Settings() {
-    Folders.CollectionChanged += (_, __) => Save();
-  }
-  #endregion
-  
+
   #region Interface ------------------------------------------------------------
   public static Settings Load() {
     var file = _settingsPath;
     if (!File.Exists(file)) return new Settings();
     var fileContent = File.ReadAllText(file);
-    var settings = JsonSerializer.Deserialize<Settings>(fileContent, Common.JsSOptions());
-    if (settings == null) {
-      Logger.Error("Settings file is empty or invalid");
+    try {
+      var settings = JsonSerializer.Deserialize<Settings>(fileContent, Common.JsSOptions());
+      if (settings == null) {
+        Logger.Error("Settings file is empty or invalid");
+        return new Settings();
+      }
+      Logger.Info($"Settings loaded from {file}");
+      return settings;
+    }
+    catch (JsonException e) {
+      Logger.Error("Settings file is invalid", e.ToString());
       return new Settings();
     }
-    Logger.Info($"Settings loaded from {file}");
-    return settings;
   }
-  
+
   public void Save() {
     var file = _settingsPath;
     if (!Directory.Exists(Common.GetAppDataPath()))

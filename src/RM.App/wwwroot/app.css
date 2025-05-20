@@ -11,6 +11,7 @@
     --toggler-bg: #23272f;
     --toggler-icon: rgba(255, 255, 255, 0.7);
     --toggler-border: #444a54;
+    --fg: #fff;
 }
 
 .page, main {
@@ -79,4 +80,13 @@ h1:focus {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+
+.repo-uptodate {
+    color: var(--fg);
+}
+
+.repo-outdated {
+    color: #000000;
+    background-color: #ffba00;
 }

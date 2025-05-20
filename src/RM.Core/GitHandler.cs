@@ -16,7 +16,7 @@ public static class GH {
       CreateNoWindow = true
     };
     var sw = new Stopwatch();
-    if (Logger.LogLevel == LogLevel.Debug) {
+    if (Logger.LogLevel == LogLevel.DebugGit) {
       sw.Start();
     }
     using var process = Process.Start(psi);
@@ -27,9 +27,9 @@ public static class GH {
     var output = process.StandardOutput.ReadToEnd();
     var error = process.StandardError.ReadToEnd();
     process.WaitForExit();
-    if (Logger.LogLevel == LogLevel.Debug) {
+    if (Logger.LogLevel == LogLevel.DebugGit) {
       sw.Stop();
-      Logger.Debug($"git {command} -- took {sw.ElapsedMilliseconds} ms");
+      Logger.DebugGit($"git {command} -- took {sw.ElapsedMilliseconds} ms");
     }
     if (process.ExitCode == 0) return output.TrimEnd('\r', '\n');
     Logger.Error($"Git command failed with exit code {process.ExitCode}: {error}");

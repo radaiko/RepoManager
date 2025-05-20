@@ -6,12 +6,12 @@
     <h5 class="d-inline-block me-2">Watch List</h5>
     <button class="btn btn-primary align-top" style="vertical-align: top;" @onclick="AddFolder">Add Folder</button>
 </div>
-@foreach (var folder in Hub.Settings.Folders) {
+@foreach (var folder in Hub.Folders.GetFolderPaths()) {
     <div class="d-flex align-items-center mb-2">
         <button class="btn btn-outline-danger btn-sm align-top p-1 d-flex align-items-center me-2" style="vertical-align: middle; line-height: 1;"
                 @onclick="() => RemoveFolder(folder)">X
         </button>
-        <span>@folder.Path</span>
+        <span>@folder</span>
     </div>
 }
 
@@ -44,16 +44,14 @@
         var folders = await Hub.Window?.ShowOpenFolderAsync(title: "Select folder", multiSelect: false)!;
         if (folders.Length == 0) return;
         var folder = folders[0];
-        if (!string.IsNullOrEmpty(folder) && !Hub.Settings.Folders.Any(f => f.Path == folder)) {
+        if (!string.IsNullOrEmpty(folder) && Hub.Settings.Folders.All(f => f != folder)) {
             Logger.Info($"Adding folder: {folder}");
-            Hub.Settings.Folders.Add(new Folder(folder));
-            Hub.Settings.Save();
+            Hub.AddFolder(folder);
         }
     }
 
-    private void RemoveFolder(Folder folder) {
-        Hub.Settings.Folders.Remove(folder);
-        Hub.Settings.Save();
+    private void RemoveFolder(string path) {
+        Hub.RemoveFolder(path);
     }
 
     private static void OpenLog() {

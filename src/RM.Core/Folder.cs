@@ -3,13 +3,13 @@ using System.Text.Json.Serialization;
 
 namespace RM.Core;
 
-public class Folder{
-  
+public class Folder {
+
   #region Properties -----------------------------------------------------------
   [JsonIgnore]
   public List<Repo> Repos { get; private set; }
   [JsonIgnore]
-  public long LastAnalyzeTime { get; private set;}
+  public long LastAnalyzeTime { get; private set; }
   public string Path {
     get => _path;
     set {
@@ -17,19 +17,19 @@ public class Folder{
     }
   }
   #endregion
-  
+
   #region Variables ------------------------------------------------------------
   private string _path;
   #endregion
-  
+
   #region Constructor ----------------------------------------------------------
   public Folder(string path) {
     _path = path;
     Repos = GetAllRepos();
   }
   #endregion
-  
-  #region Analyze --------------------------------------------------------------
+
+  #region Interface ------------------------------------------------------------
   public void Analyze() {
     var sw = new Stopwatch(); sw.Start();
     Parallel.ForEach(Repos, repo => {
@@ -39,11 +39,11 @@ public class Folder{
     LastAnalyzeTime = sw.ElapsedMilliseconds;
   }
   #endregion
-  
+
   #region Implementation -------------------------------------------------------
   private List<Repo> GetAllRepos() {
     var sw = new Stopwatch(); sw.Start();
-    var directories = Directory.GetDirectories(_path, ".git", System.IO.SearchOption.AllDirectories);
+    var directories = Directory.GetDirectories(_path, ".git", SearchOption.AllDirectories);
     var repos = new List<Repo>();
     Parallel.ForEach(directories, dir => {
       var repo = GetRepo(dir);
@@ -60,5 +60,5 @@ public class Folder{
     return new Repo(repoPath);
   }
   #endregion
-  
+
 }

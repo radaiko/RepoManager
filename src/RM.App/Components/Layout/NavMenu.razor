@@ -1,4 +1,6 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using RM.App.Services
+@using RM.Base
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Repo Manager</a>
     </div>
@@ -19,6 +21,13 @@
                 <MudIcon Icon="@Icons.Material.Filled.Settings" Title="Settings" /> <span></span> Settings
             </NavLink>
         </div>
+        <button @onclick="Test">Test</button>
     </nav>
 </div>
+
+@code {
+    private void Test() {
+        
+    }
+}
 

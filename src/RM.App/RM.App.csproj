@@ -19,9 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\RM.UI\RM.UI.csproj" />
     <ProjectReference Include="..\RM.Base\RM.Base.csproj" />
     <ProjectReference Include="..\RM.Core\RM.Core.csproj" />
+    <ProjectReference Include="..\RM.UI\RM.UI.csproj" />
   </ItemGroup>
 
 </Project>

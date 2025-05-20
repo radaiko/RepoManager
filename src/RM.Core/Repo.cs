@@ -12,17 +12,19 @@ public class Repo {
   public List<Branch> Branches { get; } = new();
   public long LastAnalyzeTime => _lastAnalyzeTime;
   public string MainBranchName { get; private set; }
+
   public bool IsMainUpToDate {
     get {
       var branch = Branches.FirstOrDefault(b => b.Name.ToLower() == MainBranchName);
       if (branch == null) return false;
-      return !branch.IsRemoteAhead || !branch.IsLocalAhead;
+      return !branch.IsRemoteAhead && !branch.IsLocalAhead;
     }
   }
   #endregion
 
   #region Variables ------------------------------------------------------------
   private long _lastAnalyzeTime = 0;
+  private readonly System.Timers.Timer _timer = new(1000);
   #endregion
 
   #region Constructor ----------------------------------------------------------
@@ -39,9 +41,9 @@ public class Repo {
       Branches.Add(new Branch(this, branch));
     }
     // check if main branch exists
-    if (Branches.Any(b => b.Name.ToLower() == "main")) 
-      MainBranchName = "main"; 
-    else 
+    if (Branches.Any(b => b.Name.ToLower() == "main"))
+      MainBranchName = "main";
+    else
       MainBranchName = "master";
     sw.Stop();
     _lastAnalyzeTime = sw.ElapsedMilliseconds;

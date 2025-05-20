@@ -1,15 +1,24 @@
 ﻿@page "/"
+@using RM.App.Services
 
 <PageTitle>Repository List</PageTitle>
 
 <ul>
-    @foreach (var folder in Services.Hub.Settings.Folders) {
+    @foreach (var folder in Services.Hub.Folders.GetAll()) {
         foreach (var repo in folder.Repos.OrderBy(r => r.Name)) {
-            <li style="background-color:@(repo.IsMainUpToDate ? "inherit" : "yellow")">@repo.Name</li>
+            <li class="@(repo.IsMainUpToDate ? "repo-uptodate" : "repo-outdated")">@repo.Name</li>
         }
     }
 </ul>
 
 @code {
+    protected override void OnInitialized() {
+        Hub.OnStateChanged += StateHasChanged;
+    }
+
+    public void Dispose() {
+        Hub.OnStateChanged -= StateHasChanged;
+    }
+
 
 }

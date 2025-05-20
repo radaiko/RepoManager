@@ -7,7 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\src\RM.Core\RM.Core.csproj" />
+      <PackageReference Include="Microsoft.AspNetCore.Components" Version="9.0.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\RM.Core\RM.Core.csproj" />
     </ItemGroup>
 
 </Project>
