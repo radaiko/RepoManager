@@ -1,3 +1,5 @@
+using RM.Base;
+
 namespace RM.Core;
 
 public class AutoRefresher {
@@ -26,8 +28,7 @@ public class AutoRefresher {
     Task.Run(Run);
     _isRunning = true;
     _timer = new System.Timers.Timer(_interval);
-    _timer.AutoReset = true;
-    _timer.Elapsed += (sender, e) => Task.Run(Run);
+    _timer.Elapsed += (sender, e) => Common.RunInBackground(Run)((s, e) => OnStateChanged?.Invoke());
     _timer.Start();
   }
 
@@ -48,8 +49,9 @@ public class AutoRefresher {
 
   #region Implementation -----------------------------------------------------
   private void Run() {
+    _timer?.Stop();
     _folders.Analyze();
-    OnStateChanged?.Invoke();
+    _timer?.Start();
   }
   #endregion
 }

@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using RM.App.Services
+@using RM.Base
 
 <PageTitle>Repository List</PageTitle>
 
@@ -13,11 +14,12 @@
 
 @code {
     protected override void OnInitialized() {
-        Hub.OnStateChanged += StateHasChanged;
+        Hub.OnStateChanged += Update;
     }
 
-    public void Dispose() {
-        Hub.OnStateChanged -= StateHasChanged;
+    private void Update() {
+        StateHasChanged();
+        Logger.Info("Update on Home called");
     }
 
 

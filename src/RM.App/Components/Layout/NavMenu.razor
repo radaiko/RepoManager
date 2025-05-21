@@ -1,33 +1,40 @@
 ﻿@using RM.App.Services
 @using RM.Base
 <div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Repo Manager</a>
-    </div>
+  <div class="container-fluid">
+    <a class="navbar-brand" href="">Repo Manager</a>
+  </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+<input type="checkbox" title="Navigation menu" class="navbar-toggler"/>
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <MudIcon Icon="@Icons.Material.Filled.Folder" Title="Settings" /> <span></span> Repo List
-            </NavLink>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="settings">
-                <MudIcon Icon="@Icons.Material.Filled.Settings" Title="Settings" /> <span></span> Settings
-            </NavLink>
-        </div>
-        <button @onclick="Test">Test</button>
-    </nav>
+  <nav class="nav flex-column">
+    <div class="nav-item px-3">
+      <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+        <MudIcon Icon="@Icons.Material.Filled.Folder" Title="Settings"/>
+        <span></span> Repo List
+      </NavLink>
+    </div>
+
+    <div class="nav-item px-3">
+      <NavLink class="nav-link" href="settings">
+        <MudIcon Icon="@Icons.Material.Filled.Settings" Title="Settings"/>
+        <span></span> Settings
+      </NavLink>
+    </div>
+    <button @onclick="Test">Test</button>
+  </nav>
 </div>
 
 @code {
-    private void Test() {
-        
-    }
+  private void Test() {
+    Logger.Debug("Test button triggered");
+    //Helpers.Common.RunInBackground(() => Thread.Sleep(2000))((s, e) => InvokeAsync(StateHasChanged));
+  }
+
+  private void Test2() {
+    Console.WriteLine("Test2");
+  }
 }
 

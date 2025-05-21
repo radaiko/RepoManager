@@ -23,19 +23,19 @@
         </article>
     </main>
 
-    @* <div class="bottom-bar" *@
-    @*      style="position:fixed;left:0;right:0;bottom:0;width:100%;background:#f5f5f5;border-top:1px solid #ccc;z-index:1000;max-height:20%"> *@
-    @*     <button @onclick="ToggleBottomBar" style="float:right;margin:4px;"><span *@
-    @*             style="float:left;margin-right:8px;">Log</span>@(_isBottomBarOpen ? "▼" : "▲")</button> *@
-    @*     <div style="clear:both;"></div> *@
-    @*     @if (_isBottomBarOpen) { *@
-    @*         <div @ref="_logContainerRef" style="padding:12px;overflow-y:auto;max-height:15vh;"> *@
-    @*             @foreach (var message in _logMessages.ToList()) { *@
-    @*                 <div>@message.ToString()</div> *@
-    @*             } *@
-    @*         </div> *@
-    @*     } *@
-    @* </div> *@
+    <div class="bottom-bar"
+         style="position:fixed;left:0;right:0;bottom:0;width:100%;background:#f5f5f5;border-top:1px solid #ccc;z-index:1000;max-height:20%">
+        <button @onclick="ToggleBottomBar" style="float:right;margin:4px;"><span
+                style="float:left;margin-right:8px;">Log</span>@(_isBottomBarOpen ? "▼" : "▲")</button>
+        <div style="clear:both;"></div>
+        @if (_isBottomBarOpen) {
+            <div @ref="_logContainerRef" style="padding:12px;overflow-y:auto;max-height:15vh;">
+                <Virtualize Items="_logMessages" Context="message">
+                    <div>@message.ToString()</div>
+                </Virtualize>
+            </div>
+        }
+    </div>
 
 </div>
 
@@ -45,34 +45,35 @@
     <span class="dismiss">🗙</span>
 </div>
 
-@* @code { *@
-@*     private bool _isBottomBarOpen = Hub.Settings.LogLevel >= LogLevel.Debug; *@
-@*     private readonly List<LogMessage> _logMessages = []; *@
-@*     private ElementReference _logContainerRef; *@
-@* *@
-@*     private void ToggleBottomBar() { *@
-@*         _isBottomBarOpen = !_isBottomBarOpen; *@
-@*     } *@
-@* *@
-@*     protected override Task OnInitializedAsync() { *@
-@*         //Logger.OnLogMessageAdded += LogMessageReceivedAsync; *@
-@*         return Task.CompletedTask; *@
-@*     } *@
-@* *@
-@*     private async void LogMessageReceivedAsync() { *@
-@*         while (Logger.LogMessages.Count > 0) { *@
-@*             var msg = Logger.TryGetFirstLogMessage(); *@
-@*             if (msg != null) { *@
-@*                 _logMessages.Add(msg); *@
-@*             } *@
-@*         } *@
-@*         await InvokeAsync(StateHasChanged); *@
-@*         await ScrollLogToBottomAsync(); *@
-@*     } *@
-@* *@
-@*     private async Task ScrollLogToBottomAsync() { *@
-@*         if (_isBottomBarOpen) { *@
-@*             await JS.InvokeVoidAsync("scrollToBottom", _logContainerRef); *@
-@*         } *@
-@*     } *@
-@* } *@
+@code {
+    private bool _isBottomBarOpen = Hub.Settings.LogLevel >= LogLevel.Debug;
+    private readonly List<LogMessage> _logMessages = [];
+    private ElementReference _logContainerRef;
+
+    private void ToggleBottomBar() {
+        _isBottomBarOpen = !_isBottomBarOpen;
+    }
+
+    protected override Task OnInitializedAsync() {
+      Logger.OnLogMessageAdded += LogMessageReceivedAsync;
+      return Task.CompletedTask;
+    }
+
+    private async void LogMessageReceivedAsync() {
+      while (Logger.LogMessages.Count > 0) {
+        LogMessage? msg;
+        var success = Logger.LogMessages.TryDequeue(out msg);
+        if (success && msg != null) {
+          _logMessages.Add(msg);
+        }
+      }
+      await InvokeAsync(StateHasChanged);
+      await ScrollLogToBottomAsync();
+    }
+
+    private async Task ScrollLogToBottomAsync() {
+        if (_isBottomBarOpen) {
+            await JS.InvokeVoidAsync("scrollToBottom", _logContainerRef);
+        }
+    }
+}

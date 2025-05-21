@@ -7,7 +7,7 @@ public static class Logger {
   public static bool LogToConsole { get; set; }
   public static bool LogToFile { get; set; } = true;
 
-  public static List<LogMessage> LogMessages { get; } = [];
+  public static Queue<LogMessage> LogMessages { get; } = [];
   #endregion
 
   #region Events ---------------------------------------------------------------
@@ -53,23 +53,18 @@ public static class Logger {
       });
     }
   }
-
-  public static LogMessage? TryGetFirstLogMessage() {
-    if (LogMessages.Count == 0) return null;
-    return LogMessages[0];
-  }
   #endregion
 
   #region Implementation -------------------------------------------------------
   private static void Log(LogLevel level, string message) {
     if (level > LogLevel) return;
     var logMessage = new LogMessage(level, message);
-    LogMessages.Add(logMessage);
-    OnLogMessageAdded?.Invoke();
+    LogMessages.Enqueue(logMessage);
     if (LogToFile)
       InternalLogToFile(logMessage);
     if (LogToConsole)
       logMessage.ToConsole();
+    OnLogMessageAdded?.Invoke();
   }
 
   private static void InternalLogToFile(LogMessage message) {
