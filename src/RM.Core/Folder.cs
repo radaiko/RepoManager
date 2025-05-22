@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json.Serialization;
+using RM.Base;
 
 namespace RM.Core;
 
@@ -30,11 +31,17 @@ public class Folder {
   #endregion
 
   #region Interface ------------------------------------------------------------
-  public void Analyze() {
+  public void Analyze(Folders mainObject) {
     var sw = new Stopwatch(); sw.Start();
-    Parallel.ForEach(Repos, repo => {
-      repo.Analyze();
-    });
+    if (Environment.CurrentManagedThreadId == 1) {
+      Parallel.ForEach(Repos, repo => {
+        repo.Analyze(mainObject);
+      });
+    } else {
+      foreach (var repo in Repos) {
+        repo.Analyze(mainObject);
+      }
+    }
     sw.Stop();
     LastAnalyzeTime = sw.ElapsedMilliseconds;
   }

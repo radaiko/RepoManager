@@ -15,14 +15,5 @@ public static class Common {
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
   };
 
-  public static Action<EventHandler> RunInBackground(Action action)
-  {
-    EventHandler? completed = null;
-    Task.Run(() =>
-    {
-      action();
-      completed?.Invoke(null, EventArgs.Empty);
-    });
-    return handler => completed += handler;
-  }
+  public static void RunInBackground(Action action) => Task.Run(action);
 }

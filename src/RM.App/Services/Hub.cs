@@ -1,4 +1,5 @@
 using Photino.NET;
+using RM.App.Helpers;
 using RM.Base;
 using RM.Core;
 using RM.UI;
@@ -10,30 +11,26 @@ public static class Hub {
     foreach (var folder in Settings.Folders) {
       InternalAddFolder(folder);
     }
+    Logger.Info($"Loaded {Settings.Folders.Count} folders from settings");
     _autoRefresher = new AutoRefresher(Folders);
     _autoRefresher.OnStateChanged += () => {
       try {
-        if (Window != null) {
-          Window.Invoke(() => {
-            try {
-              OnStateChanged?.Invoke();
-            } catch (Exception ex) {
-              Logger.Error("Error invoking OnStateChanged:", ex);
-            }
-          });
-        }
+        WindowManager.MainWindow?.Invoke(() => {
+          OnAutoRefresherStateChanged?.Invoke();
+        });
       } catch (Exception ex) {
-        Logger.Error("Error in Window.Invoke:", ex);
+        Logger.Error("Error in Invoke:", ex);
       }
     };
     _autoRefresher.Start();
+    Logger.Info("AutoRefresher started");
+    Logger.Info("Hub initialized");
   }
-  public static PhotinoWindow? Window { get; set; }
   public static Settings Settings => _settings ??= Settings.Load();
   private static Settings? _settings;
   private static AutoRefresher? _autoRefresher;
 
-  public static event Action? OnStateChanged;
+  public static event Action? OnAutoRefresherStateChanged;
 
   #region Folders Handling -----------------------------------------------------
   public static Folders Folders { get; } = new();

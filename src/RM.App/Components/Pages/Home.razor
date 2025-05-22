@@ -14,7 +14,8 @@
 
 @code {
     protected override void OnInitialized() {
-        Hub.OnStateChanged += Update;
+        Hub.OnAutoRefresherStateChanged += Update;
+        Logger.Info("OnInitialized on HomePage called");
     }
 
     private void Update() {

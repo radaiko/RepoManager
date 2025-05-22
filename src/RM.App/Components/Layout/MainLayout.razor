@@ -65,6 +65,8 @@
         var success = Logger.LogMessages.TryDequeue(out msg);
         if (success && msg != null) {
           _logMessages.Add(msg);
+          await InvokeAsync(StateHasChanged);
+          await ScrollLogToBottomAsync();
         }
       }
       await InvokeAsync(StateHasChanged);

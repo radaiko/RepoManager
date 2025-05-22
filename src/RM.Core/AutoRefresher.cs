@@ -19,6 +19,7 @@ public class AutoRefresher {
     _folders = folders;
     _interval = interval;
     _isRunning = false;
+    _folders.OnStateChanged += () => OnStateChanged?.Invoke();
   }
   #endregion
 
@@ -28,7 +29,7 @@ public class AutoRefresher {
     Task.Run(Run);
     _isRunning = true;
     _timer = new System.Timers.Timer(_interval);
-    _timer.Elapsed += (sender, e) => Common.RunInBackground(Run)((s, e) => OnStateChanged?.Invoke());
+    _timer.Elapsed += (_, _) => Common.RunInBackground(Run);
     _timer.Start();
   }
 
@@ -49,9 +50,11 @@ public class AutoRefresher {
 
   #region Implementation -----------------------------------------------------
   private void Run() {
+    Logger.Info("AutoRefresher run started");
     _timer?.Stop();
     _folders.Analyze();
     _timer?.Start();
+    Logger.Info("AutoRefresher run finished");
   }
   #endregion
 }

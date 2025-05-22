@@ -52,12 +52,19 @@ public class Repo {
   #endregion
 
   #region Interface ------------------------------------------------------------
-  public void Analyze() {
-    var sw = new Stopwatch(); sw.Start();
-    Parallel.ForEach(Branches, branch => {
-      branch.Analyze();
-    });
+  public void Analyze(Folders mainObject) {
+    var sw = new Stopwatch();
+    sw.Start();
+    if (Environment.CurrentManagedThreadId == 1) {
+      Parallel.ForEach(Branches, branch => { branch.Analyze(); });
+    } else {
+      foreach (var branch in Branches) {
+        branch.Analyze();
+      }
+    }
     sw.Stop();
+    mainObject.RaiseStateChanged();
+    Logger.Info($"{Name} analyzed in {sw.ElapsedMilliseconds} ms");
     _lastAnalyzeTime = sw.ElapsedMilliseconds;
   }
 

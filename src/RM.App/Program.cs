@@ -1,14 +1,17 @@
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
 using Photino.Blazor;
+using RM.App.Helpers;
 using RM.App.Services;
 using RM.Base;
+using Common = RM.Base.Common;
 
 namespace RM.App {
   class Program {
     [STAThread]
     static void Main(string[] args) {
       // Logger
+      Logger.LogLevel = LogLevel.Info;
       Logger.LogLevel = Hub.Settings.LogLevel;
       Logger.LogToFile = Hub.Settings.LogToFile;
 
@@ -23,11 +26,11 @@ namespace RM.App {
 
       app.MainWindow.SetTitle("Repo Manager");
       app.MainWindow.SetContextMenuEnabled(true);
-      Hub.Window = app.MainWindow;
+      WindowManager.SetMainWindow(app.MainWindow);
 
       AppDomain.CurrentDomain.UnhandledException += (_, error) => {
         app.MainWindow.ShowMessage("Fatal Exception", error.ExceptionObject.ToString());
-        Logger.Error("Fatal Exception", error.ExceptionObject.ToString());
+        Logger.Error("Fatal Exception", (Exception)error.ExceptionObject);
       };
 
 

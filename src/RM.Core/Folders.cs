@@ -4,6 +4,10 @@ using RM.Base;
 namespace RM.Core;
 
 public class Folders {
+  #region Events ---------------------------------------------------------------
+  public event Action? OnStateChanged;
+  #endregion
+
   #region Variables ------------------------------------------------------------
   private List<Folder> _foldersList = [];
   #endregion
@@ -31,11 +35,19 @@ public class Folders {
 
   public void Analyze() {
     var sw = new Stopwatch(); sw.Start();
-    Parallel.ForEach(_foldersList, folder => {
-      folder.Analyze();
-    });
+    if (Environment.CurrentManagedThreadId == 1) {
+      Parallel.ForEach(_foldersList, folder => {
+        folder.Analyze(this);
+      });
+    } else {
+      foreach (var folder in _foldersList) {
+        folder.Analyze(this);
+      }
+    }
     sw.Stop();
     Logger.Debug($"Analyzed all folders in {sw.ElapsedMilliseconds} ms");
   }
+
+  public void RaiseStateChanged() => OnStateChanged?.Invoke();
   #endregion
 }
