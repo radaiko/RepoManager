@@ -80,7 +80,7 @@ jobs:
             - Windows: repomanager.exe
             - macOS: Repo Manager.app
           files: |
-            release/repomanager.exe
+            release/repo_manager.exe
             release/Repo\ Manager.app
           draft: false
           prerelease: false
