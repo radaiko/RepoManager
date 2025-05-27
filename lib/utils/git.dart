@@ -114,6 +114,6 @@ class Git {
       return output.trimRight();
     }
     Logger.error("Git command failed with exit code $exitCode: $error");
-    throw Exception("Git command failed: $error");
+    return "";
   }
 }

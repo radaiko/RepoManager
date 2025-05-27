@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:repo_manager/pages/log_page.dart';
 import 'package:repo_manager/pages/repositories_page.dart';
 import 'package:repo_manager/utils/hub.dart';
+import 'package:repo_manager/utils/auto_analyzer.dart';
 import 'utils/logger.dart';
 import 'utils/common.dart';
 import 'pages/about_page.dart';
@@ -25,6 +26,22 @@ void main() async {
   Logger.info("LogToFile: ${Logger.logToFile}");
   Logger.info("LogToConsole: ${Logger.logToConsole}");
   Logger.info("Current Device: ${Common.getCurrentDevice()}");
+
+  // Load auto analysis settings and start if enabled
+  final autoAnalysisEnabled = prefs?.getBool('auto_analysis_enabled') ?? true;
+  final analysisInterval = prefs?.getInt('analysis_interval') ?? 10;
+
+  if (analysisInterval >= 5) {
+    AutoAnalyzer.setAnalysisInterval(analysisInterval);
+  }
+
+  if (autoAnalysisEnabled) {
+    AutoAnalyzer.startAutoAnalysis();
+    Logger.info("Auto analyzer started (interval: ${analysisInterval}s)");
+  } else {
+    Logger.info("Auto analyzer disabled in settings");
+  }
+
   runApp(const MyApp());
 }
 
@@ -97,11 +114,98 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  bool _isAnalyzing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    AutoAnalyzer.addOnAnalysisStartedListener(_onAnalysisStarted);
+    AutoAnalyzer.addOnAnalysisCompletedListener(_onAnalysisCompleted);
+  }
+
+  @override
+  void dispose() {
+    AutoAnalyzer.removeOnAnalysisStartedListener(_onAnalysisStarted);
+    AutoAnalyzer.removeOnAnalysisCompletedListener(_onAnalysisCompleted);
+    super.dispose();
+  }
+
+  void _onAnalysisStarted() {
+    if (mounted) {
+      setState(() {
+        _isAnalyzing = true;
+      });
+    }
+  }
+
+  void _onAnalysisCompleted() {
+    if (mounted) {
+      setState(() {
+        _isAnalyzing = false;
+      });
+
+      // Show a brief notification when analysis completes
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 16),
+              SizedBox(width: 8),
+              Text('Repository analysis completed'),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          width: 300,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Text(widget.title),
+            if (_isAnalyzing) ...[
+              const SizedBox(width: 12),
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Analyzing...',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              AutoAnalyzer.performManualAnalysis();
+            },
+            tooltip: 'Analyze Now',
+          ),
+        ],
+      ),
       body: const RepositoriesPage(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          AutoAnalyzer.performManualAnalysis();
+        },
+        tooltip: 'Analyze Repositories',
+        child: const Icon(Icons.analytics),
+      ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
