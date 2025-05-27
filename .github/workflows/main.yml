@@ -12,35 +12,41 @@ jobs:
   generate-tag:
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.generate-tag.outputs.tag }}
-      version: ${{ steps.generate-tag.outputs.version }}
+      tag: ${{ steps.generate-version.outputs.tag }}
+      version: ${{ steps.generate-version.outputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Full history for tag generation
 
-      - name: Generate tag and version
-        id: generate-tag
+      - name: Generate version from pubspec.yaml
+        id: generate-version
         run: |
-          # Check for existing tags
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          if [ -z "$LATEST_TAG" ]; then
-            # No tags exist, start with v0.0.1
-            TAG="v0.0.1"
-            VERSION="0.0.1"
-          else
-            # Extract version components (e.g., v0.0.1 -> 0.0.1)
-            VERSION=${LATEST_TAG#v}
-            MAJOR=$(echo $VERSION | cut -d. -f1)
-            MINOR=$(echo $VERSION | cut -d. -f2)
-            PATCH=$(echo $VERSION | cut -d. -f3)
-            NEW_PATCH=$((PATCH + 1))
-            VERSION="$MAJOR.$MINOR.$NEW_PATCH"
-            TAG="v$VERSION"
+          # Extract version from pubspec.yaml
+          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          if [ -z "$CURRENT_VERSION" ]; then
+            echo "Error: No version found in pubspec.yaml"
+            exit 1
           fi
+          # Parse version components (e.g., 16 or 1.0.0)
+          if [[ $CURRENT_VERSION =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            MAJOR=${BASH_REMATCH[1]}
+            MINOR=${BASH_REMATCH[2]}
+            PATCH=${BASH_REMATCH[3]}
+            NEW_PATCH=$((PATCH + 1))
+            NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+          elif [[ $CURRENT_VERSION =~ ^([0-9]+)$ ]]; then
+            # Handle single number (e.g., 16 -> 16.0.1)
+            MAJOR=${BASH_REMATCH[1]}
+            NEW_VERSION="$MAJOR.0.1"
+          else
+            echo "Error: Invalid version format in pubspec.yaml: $CURRENT_VERSION"
+            exit 1
+          fi
+          TAG="v$NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
         shell: bash
 
   update-pubspec:
