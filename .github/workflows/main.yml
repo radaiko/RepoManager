@@ -1,0 +1,91 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        include:
+          - os: windows-latest
+            artifact: windows
+            binary: repomanager.exe
+          - os: macos-latest
+            artifact: macos
+            binary: repomanager
+          - os: ubuntu-latest
+            artifact: linux
+            binary: repomanager
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for commit log
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.3'  # Specify stable Flutter version
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build ${{ matrix.artifact }}
+        run: |
+          flutter build ${{ matrix.artifact }} --release
+
+      - name: Package artifact
+        run: |
+          mkdir -p release
+          cp build/${{ matrix.artifact }}/runner/Release/${{ matrix.binary }} release/
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}-release
+          path: release/${{ matrix.binary }}
+          retention-days: 1
+
+      - name: Generate changelog
+        if: matrix.os == 'ubuntu-latest'  # Run only once
+        id: changelog
+        run: |
+          # Get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          # Get commits since last tag
+          CHANGELOG=$(git log --pretty="* %s (%h)" $LATEST_TAG..HEAD)
+          # Escape newlines for GitHub output
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Create Release
+        if: matrix.os == 'ubuntu-latest'  # Run only once
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          body: |
+            ## Changes
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ## Artifacts
+            - Windows: repomanager.exe
+            - macOS: repomanager
+            - Linux: repomanager
+          files: |
+            release/repomanager.exe
+            release/repomanager
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
