@@ -52,12 +52,12 @@ class Git {
     return output.lineSplit();
   }
 
-  static Future<int> getCommitsToPull(String workingDirectory) async {
+  static Future<int> getCommitsToPush(String workingDirectory) async {
     var output = await _run('rev-list --count @{u}..HEAD', workingDirectory);
     return int.tryParse(output) ?? 0;
   }
 
-  static Future<int> getCommitsToPush(String workingDirectory) async {
+  static Future<int> getCommitsToPull(String workingDirectory) async {
     var output = await _run('rev-list --count HEAD..@{u}', workingDirectory);
     return int.tryParse(output) ?? 0;
   }
