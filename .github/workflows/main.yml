@@ -18,7 +18,7 @@ jobs:
             build_path: build/windows/runner/Release
           - os: macos-latest
             artifact: macos
-            binary: repomanager
+            binary: Repo Manager.app
             build_path: build/macos/Build/Products/Release
 
     steps:
@@ -42,7 +42,7 @@ jobs:
       - name: Package artifact
         run: |
           mkdir -p release
-          cp ${{ matrix.build_path }}/${{ matrix.binary }} release/
+          cp -R ${{ matrix.build_path }}/${{ matrix.binary }} release/
         shell: bash
 
       - name: Upload artifact
@@ -78,10 +78,10 @@ jobs:
             
             ## Artifacts
             - Windows: repomanager.exe
-            - macOS: repomanager
+            - macOS: Repo Manager.app
           files: |
             release/repomanager.exe
-            release/repomanager
+            release/Repo Manager.app
           draft: false
           prerelease: false
         env:
