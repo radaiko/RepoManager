@@ -13,13 +13,34 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.generate-tag.outputs.tag }}
+      version: ${{ steps.generate-tag.outputs.version }}
     steps:
-      - name: Generate tag identifier
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for tag generation
+
+      - name: Generate tag and version
         id: generate-tag
         run: |
-          # Use run number for simple versioning, e.g., v1, v2, etc.
-          TAG="v${{ github.run_number }}"
+          # Check for existing tags
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LATEST_TAG" ]; then
+            # No tags exist, start with v0.0.1
+            TAG="v0.0.1"
+            VERSION="0.0.1"
+          else
+            # Extract version components (e.g., v0.0.1 -> 0.0.1)
+            VERSION=${LATEST_TAG#v}
+            MAJOR=$(echo $VERSION | cut -d. -f1)
+            MINOR=$(echo $VERSION | cut -d. -f2)
+            PATCH=$(echo $VERSION | cut -d. -f3)
+            NEW_PATCH=$((PATCH + 1))
+            VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+            TAG="v$VERSION"
+          fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
         shell: bash
 
   update-pubspec:
@@ -33,14 +54,17 @@ jobs:
 
       - name: Update pubspec.yaml version
         run: |
-          TAG=${{ needs.generate-tag.outputs.tag }}
-          VERSION=${TAG#v}  # Remove 'v' prefix, e.g., v1 -> 1
+          VERSION=${{ needs.generate-tag.outputs.version }}
           sed -i "s/version: .*/version: $VERSION/" pubspec.yaml
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add pubspec.yaml
           git commit -m "Update pubspec.yaml to version $VERSION"
           git push
+        shell: bash
+
+      - name: Debug pubspec.yaml
+        run: cat pubspec.yaml
         shell: bash
 
   build-windows:
