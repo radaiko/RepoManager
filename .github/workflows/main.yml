@@ -32,7 +32,7 @@ jobs:
       - name: Package artifact
         run: |
           mkdir -p release
-          cp -R build/windows/runner/Release/repo_manager.exe release/
+          cp -R build/windows/x64/runner/Release/repo_manager.exe release/
         shell: bash
 
       - name: Upload artifact
