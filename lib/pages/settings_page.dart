@@ -17,7 +17,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _loggingActive = true;
   LogLevel _selectedLogLevel = LogLevel.info;
   bool _autoAnalysisEnabled = false;
-  int _analysisInterval = 10;
+  int _analysisInterval = 1;
   Timer? _uiUpdateTimer;
 
   @override
@@ -47,7 +47,7 @@ class _SettingsPageState extends State<SettingsPage> {
       _loggingActive = Logger.logToFile;
       _selectedLogLevel = Logger.logLevel;
       _autoAnalysisEnabled = AutoAnalyzer.isAutoAnalysisEnabled;
-      _analysisInterval = AutoAnalyzer.analysisIntervalSeconds;
+      _analysisInterval = AutoAnalyzer.analysisIntervalMinutes;
     });
   }
 
@@ -57,7 +57,7 @@ class _SettingsPageState extends State<SettingsPage> {
     await prefs?.setBool('log_to_console', Logger.logToConsole);
     await prefs?.setString('log_level', _selectedLogLevel.name);
     await prefs?.setBool('auto_analysis_enabled', _autoAnalysisEnabled);
-    await prefs?.setInt('analysis_interval', _analysisInterval);
+    await prefs?.setInt('analysis_interval_minutes', _analysisInterval);
   }
 
   Future<void> _addFolder() async {
@@ -297,15 +297,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
                       // Analysis Interval Slider
                       Text(
-                        'Analysis Interval: $_analysisInterval seconds',
+                        'Analysis Interval: $_analysisInterval minutes',
                         style: const TextStyle(fontSize: 16),
                       ),
                       Slider(
                         value: _analysisInterval.toDouble(),
-                        min: 5,
-                        max: 300,
-                        divisions: 59, // (300-5)/5 = 59 steps of 5 seconds
-                        label: '$_analysisInterval sec',
+                        min: 1,
+                        max: 60,
+                        divisions: 59, // 1 to 60 minutes = 59 steps
+                        label: '$_analysisInterval min',
                         onChanged: (value) {
                           _updateAnalysisInterval(value.round());
                         },
@@ -412,7 +412,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Row(
                       children: [
                         const Text(
-                          'Analysis Interval (s): ',
+                          'Analysis Interval (m): ',
                           style: TextStyle(fontSize: 16),
                         ),
                         const SizedBox(width: 16),
@@ -421,7 +421,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             value: _analysisInterval.toDouble(),
                             onChanged: (value) =>
                                 _updateAnalysisInterval(value.toInt()),
-                            min: 5,
+                            min: 1,
                             max: 60,
                             divisions: 11,
                             label: _analysisInterval.toString(),

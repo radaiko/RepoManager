@@ -27,17 +27,15 @@ void main() async {
   Logger.info("LogToConsole: ${Logger.logToConsole}");
   Logger.info("Current Device: ${Common.getCurrentDevice()}");
 
-  // Load auto analysis settings and start if enabled
-  final autoAnalysisEnabled = prefs?.getBool('auto_analysis_enabled') ?? true;
-  final analysisInterval = prefs?.getInt('analysis_interval') ?? 10;
+  // Initialize auto analyzer with saved settings
+  await AutoAnalyzer.initialize();
 
-  if (analysisInterval >= 5) {
-    AutoAnalyzer.setAnalysisInterval(analysisInterval);
-  }
-
-  if (autoAnalysisEnabled) {
+  // Start auto analysis if enabled
+  if (AutoAnalyzer.isAutoAnalysisEnabled) {
     AutoAnalyzer.startAutoAnalysis();
-    Logger.info("Auto analyzer started (interval: ${analysisInterval}s)");
+    Logger.info(
+      "Auto analyzer started (interval: ${AutoAnalyzer.analysisIntervalMinutes}m)",
+    );
   } else {
     Logger.info("Auto analyzer disabled in settings");
   }
@@ -143,7 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _isAnalyzing = false;
       });
-
+      return;
       // Show a brief notification when analysis completes
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

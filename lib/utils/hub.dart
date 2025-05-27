@@ -1,4 +1,5 @@
 import 'package:repo_manager/logic/folder.dart';
+import 'package:repo_manager/utils/auto_analyzer.dart';
 import 'package:repo_manager/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,6 +42,7 @@ class Hub {
       _folders.map((f) => f.path).toList()..add(folder),
     );
     _folders.add(Folder(folder));
+    AutoAnalyzer.notify();
   }
 
   static void removeFolder(String folder) {
@@ -50,6 +52,7 @@ class Hub {
       _folders.map((f) => f.path).toList()..remove(folder),
     );
     _folders.removeWhere((f) => f.path == folder);
+    AutoAnalyzer.notify();
   }
 
   static void analyze() {

@@ -52,7 +52,7 @@ class _RepositoriesPageState extends State<RepositoriesPage> {
           // Analysis status indicator - compact for desktop
           if (_isAnalyzing)
             Container(
-              color: Colors.blue.withOpacity(0.08),
+              color: Colors.blue.withValues(alpha: 0.08),
               padding: const EdgeInsets.symmetric(
                 horizontal: 12.0,
                 vertical: 4.0,

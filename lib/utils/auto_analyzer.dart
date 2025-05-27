@@ -10,7 +10,7 @@ class AutoAnalyzer {
   static Timer? _analysisTimer;
   static bool _isAnalyzing = false;
   static bool _isAutoAnalysisEnabled = false;
-  static int _analysisIntervalSeconds = 10;
+  static int _analysisIntervalMinutes = 1; // Default to 1 minute
   static DateTime? _lastAnalysisTime;
   static DateTime? _nextAnalysisTime;
 
@@ -23,7 +23,7 @@ class AutoAnalyzer {
   // ---------------------------------------------------------------------------
   static bool get isAutoAnalysisEnabled => _isAutoAnalysisEnabled;
   static bool get isAnalyzing => _isAnalyzing;
-  static int get analysisIntervalSeconds => _analysisIntervalSeconds;
+  static int get analysisIntervalMinutes => _analysisIntervalMinutes;
   static DateTime? get lastAnalysisTime => _lastAnalysisTime;
   static DateTime? get nextAnalysisTime => _nextAnalysisTime;
 
@@ -69,12 +69,12 @@ class AutoAnalyzer {
   // ---------------------------------------------------------------------------
   // Interface
   // ---------------------------------------------------------------------------
-  static void startAutoAnalysis() {
-    if (_isAutoAnalysisEnabled) {
-      Logger.info('Auto analysis is already enabled.');
-      return;
-    }
+  static void notify() {
+    Logger.debug('Analysis completed, notifying listeners...');
+    _notifyAnalysisCompleted();
+  }
 
+  static void startAutoAnalysis() {
     Logger.info('Starting automatic repository analysis...');
     _isAutoAnalysisEnabled = true;
 
@@ -104,14 +104,14 @@ class AutoAnalyzer {
     _analysisTimer = null;
   }
 
-  static void setAnalysisInterval(int seconds) {
-    if (seconds < 5) {
-      Logger.error('Analysis interval cannot be less than 5 seconds.');
+  static void setAnalysisInterval(int minutes) {
+    if (minutes < 1 || minutes > 60) {
+      Logger.error('Analysis interval must be between 1 and 60 minutes.');
       return;
     }
 
-    _analysisIntervalSeconds = seconds;
-    Logger.info('Analysis interval set to $_analysisIntervalSeconds seconds.');
+    _analysisIntervalMinutes = minutes;
+    Logger.info('Analysis interval set to $_analysisIntervalMinutes minutes.');
 
     // Save to preferences
     _saveSettings();
@@ -134,7 +134,10 @@ class AutoAnalyzer {
   static Future<void> _saveSettings() async {
     if (Hub.isInitialized && Hub.prefs != null) {
       await Hub.prefs?.setBool('auto_analysis_enabled', _isAutoAnalysisEnabled);
-      await Hub.prefs?.setInt('analysis_interval', _analysisIntervalSeconds);
+      await Hub.prefs?.setInt(
+        'analysis_interval_minutes',
+        _analysisIntervalMinutes,
+      );
     }
   }
 
@@ -142,10 +145,10 @@ class AutoAnalyzer {
     if (!_isAutoAnalysisEnabled) return;
 
     _nextAnalysisTime = DateTime.now().add(
-      Duration(seconds: _analysisIntervalSeconds),
+      Duration(minutes: _analysisIntervalMinutes),
     );
 
-    _analysisTimer = Timer(Duration(seconds: _analysisIntervalSeconds), () {
+    _analysisTimer = Timer(Duration(minutes: _analysisIntervalMinutes), () {
       _performAnalysis();
       _scheduleNextAnalysis(); // Schedule the next analysis
     });
@@ -189,6 +192,28 @@ class AutoAnalyzer {
     } finally {
       _isAnalyzing = false;
       _notifyAnalysisCompleted();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Initialization
+  // ---------------------------------------------------------------------------
+  static Future<void> initialize() async {
+    if (Hub.isInitialized && Hub.prefs != null) {
+      final prefs = Hub.prefs!;
+
+      // Load saved settings
+      _isAutoAnalysisEnabled = prefs.getBool('auto_analysis_enabled') ?? false;
+      _analysisIntervalMinutes = prefs.getInt('analysis_interval_minutes') ?? 1;
+
+      // Validate interval range
+      if (_analysisIntervalMinutes < 1 || _analysisIntervalMinutes > 60) {
+        _analysisIntervalMinutes = 1;
+      }
+
+      Logger.info(
+        'AutoAnalyzer initialized: enabled=$_isAutoAnalysisEnabled, interval=${_analysisIntervalMinutes}m',
+      );
     }
   }
 

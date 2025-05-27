@@ -1,3 +1,4 @@
+import 'package:repo_manager/utils/auto_analyzer.dart';
 import 'package:repo_manager/utils/extensions.dart';
 import 'package:repo_manager/utils/git.dart';
 import 'package:repo_manager/utils/logger.dart';
@@ -64,6 +65,8 @@ class Repo {
     Logger.debug(
       "Repo $name created and pre analyzed in ${sw.elapsedHumanReadable}",
     );
+    analyze();
+    AutoAnalyzer.notify();
   }
 
   // ---------------------------------------------------------------------------
@@ -80,6 +83,7 @@ class Repo {
     Logger.info(
       "Analysis completed for repo $name in ${sw.elapsedHumanReadable} s",
     );
+    AutoAnalyzer.notify();
   }
 
   // ---------------------------------------------------------------------------
@@ -157,6 +161,7 @@ class Branch {
     Logger.debug(
       "Branch $name in repo ${_owner.name} analyzed in ${sw.elapsedHumanReadable} s",
     );
+    AutoAnalyzer.notify();
   }
 
   // ---------------------------------------------------------------------------
