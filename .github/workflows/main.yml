@@ -15,12 +15,15 @@ jobs:
           - os: windows-latest
             artifact: windows
             binary: repomanager.exe
+            build_path: build/windows/runner/Release
           - os: macos-latest
             artifact: macos
             binary: repomanager
+            build_path: build/macos/Build/Products/Release
           - os: ubuntu-latest
             artifact: linux
             binary: repomanager
+            build_path: build/linux/x64/release
 
     steps:
       - name: Checkout code
@@ -36,7 +39,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: 'stable'  # Use the latest stable version
 
       - name: Install dependencies
         run: flutter pub get
@@ -48,7 +51,7 @@ jobs:
       - name: Package artifact
         run: |
           mkdir -p release
-          cp build/${{ matrix.artifact }}/runner/Release/${{ matrix.binary }} release/
+          cp ${{ matrix.build_path }}/${{ matrix.binary }} release/
         shell: bash
 
       - name: Upload artifact
@@ -75,3 +78,21 @@ jobs:
       - name: Create Release
         if: matrix.os == 'ubuntu-latest'  # Run only once
         uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          body: |
+            ## Changes
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ## Artifacts
+            - Windows: repomanager.exe
+            - macOS: repomanager
+            - Linux: repomanager
+          files: |
+            release/repomanager.exe
+            release/repomanager
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
