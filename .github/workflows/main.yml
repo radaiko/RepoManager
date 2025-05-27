@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write  # Required for creating releases
+
 jobs:
   build-and-release:
     runs-on: ${{ matrix.os }}
@@ -51,6 +54,19 @@ jobs:
           name: ${{ matrix.artifact }}-release
           path: release/${{ matrix.binary }}
           retention-days: 1
+
+      - name: Download Windows artifact (macOS only)
+        if: matrix.os == 'macos-latest'
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-release
+          path: release
+
+      - name: Debug release directory contents (macOS only)
+        if: matrix.os == 'macos-latest'
+        run: |
+          ls -R release
+        shell: bash
 
       - name: Generate changelog
         if: matrix.os == 'macos-latest'  # Run only once
