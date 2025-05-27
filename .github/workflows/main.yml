@@ -56,10 +56,15 @@ jobs:
         if: matrix.os == 'macos-latest'  # Run only once
         id: changelog
         run: |
-          # Get the latest tag
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          # Get commits since last tag
-          CHANGELOG=$(git log --pretty="* %s (%h)" $LATEST_TAG..HEAD)
+          # Try to get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LATEST_TAG" ]; then
+            # No tags exist, get all commits
+            CHANGELOG=$(git log --pretty="* %s (%h)")
+          else
+            # Get commits since the last tag
+            CHANGELOG=$(git log --pretty="* %s (%h)" $LATEST_TAG..HEAD)
+          fi
           # Escape newlines for GitHub output
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
@@ -80,7 +85,7 @@ jobs:
             - Windows: repomanager.exe
             - macOS: Repo Manager.app
           files: |
-            release/repo_manager.exe
+            release/repomanager.exe
             release/Repo\ Manager.app
           draft: false
           prerelease: false
