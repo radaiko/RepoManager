@@ -20,10 +20,10 @@ jobs:
             artifact: macos
             binary: repomanager
             build_path: build/macos/Build/Products/Release
-          - os: ubuntu-latest
-            artifact: linux
-            binary: repomanager
-            build_path: build/linux/x64/release/bundle/repo_manager
+          # - os: ubuntu-latest
+          #   artifact: linux
+          #   binary: repomanager
+          #   build_path: build/linux/x64/release/bundle/repo_manager
 
     steps:
       - name: Checkout code
