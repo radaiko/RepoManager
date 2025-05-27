@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:repo_manager/utils/log_level.dart';
 import 'package:repo_manager/utils/logger.dart';
 
 class LogPage extends StatefulWidget {

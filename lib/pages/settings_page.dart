@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:repo_manager/utils/hub.dart';
 import '../utils/logger.dart';
-import '../utils/log_level.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -23,21 +22,20 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = Hub.prefs;
 
     setState(() {
-      _watchFolders = prefs.getStringList('watch_folders') ?? [];
+      _watchFolders = prefs?.getStringList('watch_folders') ?? [];
       _loggingActive = Logger.logToFile;
       _selectedLogLevel = Logger.logLevel;
     });
   }
 
   Future<void> _savePrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('watch_folders', _watchFolders);
-    await prefs.setBool('log_to_file', Logger.logToFile);
-    await prefs.setBool('log_to_console', Logger.logToConsole);
-    await prefs.setString('log_level', _selectedLogLevel.name);
+    final prefs = Hub.prefs;
+    await prefs?.setBool('log_to_file', Logger.logToFile);
+    await prefs?.setBool('log_to_console', Logger.logToConsole);
+    await prefs?.setString('log_level', _selectedLogLevel.name);
   }
 
   Future<void> _addFolder() async {
@@ -48,7 +46,7 @@ class _SettingsPageState extends State<SettingsPage> {
       setState(() {
         _watchFolders.add(selectedDirectory);
       });
-      await _savePrefs();
+      Hub.addFolder(selectedDirectory);
     }
   }
 
@@ -56,7 +54,7 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _watchFolders.remove(folder);
     });
-    await _savePrefs();
+    Hub.removeFolder(folder);
   }
 
   void _updateLoggingActive(bool value) async {

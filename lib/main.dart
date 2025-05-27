@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:repo_manager/pages/log_page.dart';
 import 'package:repo_manager/pages/repositories_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:repo_manager/utils/hub.dart';
 import 'utils/logger.dart';
-import 'utils/log_level.dart';
 import 'utils/common.dart';
 import 'pages/about_page.dart';
 import 'pages/settings_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Hub.initialize();
   // Setup logger
-  final prefs = await SharedPreferences.getInstance();
-  Logger.logToFile = prefs.getBool('log_to_file') ?? true;
-  Logger.logToConsole = prefs.getBool('log_to_console') ?? false;
-  final levelString = prefs.getString('log_level') ?? LogLevel.info.name;
+  final prefs = Hub.prefs;
+  Logger.logToFile = prefs?.getBool('log_to_file') ?? true;
+  Logger.logToConsole = prefs?.getBool('log_to_console') ?? false;
+  final levelString = prefs?.getString('log_level') ?? LogLevel.info.name;
   Logger.logLevel = LogLevel.values.firstWhere(
     (level) => level.name == levelString,
     orElse: () => LogLevel.info,
