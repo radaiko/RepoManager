@@ -1,74 +1,39 @@
 name: Build and Release
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (e.g., v1.0.1)'
+        required: true
+        type: string
 
 permissions:
-  contents: write  # Required for creating releases, commits, and tags
+  contents: write  # Required for creating releases, commits, and pushes
 
 jobs:
-  generate-tag:
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.generate-version.outputs.tag }}
-      version: ${{ steps.generate-version.outputs.version }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Full history for tag generation
-
-      - name: Generate version from pubspec.yaml
-        id: generate-version
-        run: |
-          # Extract version from pubspec.yaml
-          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
-          if [ -z "$CURRENT_VERSION" ]; then
-            echo "Error: No version found in pubspec.yaml"
-            exit 1
-          fi
-          # Parse version components (e.g., 16 or 1.0.0)
-          if [[ $CURRENT_VERSION =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-            MAJOR=${BASH_REMATCH[1]}
-            MINOR=${BASH_REMATCH[2]}
-            PATCH=${BASH_REMATCH[3]}
-            NEW_PATCH=$((PATCH + 1))
-            NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
-          elif [[ $CURRENT_VERSION =~ ^([0-9]+)$ ]]; then
-            # Handle single number (e.g., 16 -> 16.0.1)
-            MAJOR=${BASH_REMATCH[1]}
-            NEW_VERSION="$MAJOR.0.1"
-          else
-            echo "Error: Invalid version format in pubspec.yaml: $CURRENT_VERSION"
-            exit 1
-          fi
-          TAG="v$NEW_VERSION"
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-        shell: bash
-
   update-pubspec:
     runs-on: ubuntu-latest
-    needs: generate-tag
     outputs:
       commit_sha: ${{ steps.update.outputs.commit_sha }}
     steps:
-      - name: Checkout code
+      - name: Checkout code at tag
         uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.tag }}
           fetch-depth: 0
 
       - name: Update pubspec.yaml version
         id: update
         run: |
-          VERSION=${{ needs.generate-tag.outputs.version }}
+          TAG=${{ inputs.tag }}
+          # Remove 'v' prefix if present (e.g., v1.0.1 -> 1.0.1)
+          VERSION=${TAG#v}
           sed -i "s/version: .*/version: $VERSION/" pubspec.yaml
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add pubspec.yaml
-          git commit -m "Update pubspec.yaml to version $VERSION"
+          git commit -m "Update pubspec.yaml to version $VERSION for tag $TAG"
           git push
           COMMIT_SHA=$(git rev-parse HEAD)
           echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
@@ -82,7 +47,7 @@ jobs:
     runs-on: windows-latest
     needs: update-pubspec
     steps:
-      - name: Checkout code
+      - name: Checkout code at updated commit
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -119,7 +84,7 @@ jobs:
     outputs:
       changelog: ${{ steps.changelog.outputs.changelog }}
     steps:
-      - name: Checkout code
+      - name: Checkout code at updated commit
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -153,14 +118,15 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: |
-          # Try to get the latest tag
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          # Try to get the previous tag (excluding the input tag)
+          CURRENT_TAG=${{ inputs.tag }}
+          LATEST_TAG=$(git describe --tags --abbrev=0 --exclude $CURRENT_TAG 2>/dev/null || echo "")
           if [ -z "$LATEST_TAG" ]; then
-            # No tags exist, get all commits
-            CHANGELOG=$(git log --pretty="* %s (%h)")
+            # No previous tags, get all commits up to current tag
+            CHANGELOG=$(git log --pretty="* %s (%h)" $CURRENT_TAG)
           else
-            # Get commits since the last tag
-            CHANGELOG=$(git log --pretty="* %s (%h)" $LATEST_TAG..HEAD)
+            # Get commits between last tag and current tag
+            CHANGELOG=$(git log --pretty="* %s (%h)" $LATEST_TAG..$CURRENT_TAG)
           fi
           # Escape newlines for GitHub output
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
@@ -168,26 +134,9 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
         shell: bash
 
-  tag-commit:
-    runs-on: ubuntu-latest
-    needs: [build-windows, build-macos]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ needs.update-pubspec.outputs.commit_sha }}  # Use updated commit
-
-      - name: Create and push tag
-        run: |
-          TAG=${{ needs.generate-tag.outputs.tag }}
-          git tag $TAG
-          git push origin $TAG
-        shell: bash
-
   release:
     runs-on: ubuntu-latest
-    needs: [build-windows, build-macos, tag-commit]
+    needs: [build-windows, build-macos]
     steps:
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
@@ -209,8 +158,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.generate-tag.outputs.tag }}
-          name: Release ${{ needs.generate-tag.outputs.tag }}
+          tag_name: ${{ inputs.tag }}
+          name: Release ${{ inputs.tag }}
           body: |
             ## Changes
             ${{ needs.build-macos.outputs.changelog }}
