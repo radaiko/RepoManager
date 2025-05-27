@@ -9,21 +9,8 @@ permissions:
   contents: write  # Required for creating releases
 
 jobs:
-  build-and-release:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest]
-        include:
-          - os: windows-latest
-            artifact: windows
-            binary: repomanager.exe
-            build_path: build/windows/runner/Release
-          - os: macos-latest
-            artifact: macos
-            binary: "Repo Manager.app"
-            build_path: build/macos/Build/Products/Release
-
+  build-windows:
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,38 +25,57 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build ${{ matrix.artifact }}
+      - name: Build Windows
         run: |
-          flutter build ${{ matrix.artifact }} --release
+          flutter build windows --release
 
       - name: Package artifact
         run: |
           mkdir -p release
-          cp -R "${{ matrix.build_path }}/${{ matrix.binary }}" release/
+          cp -R build/windows/runner/Release/repomanager.exe release/
         shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}-release
-          path: release/${{ matrix.binary }}
+          name: windows-release
+          path: release/repo_manager.exe
           retention-days: 1
 
-      - name: Download Windows artifact (macOS only)
-        if: matrix.os == 'macos-latest'
-        uses: actions/download-artifact@v4
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          name: windows-release
-          path: release
+          fetch-depth: 0  # Full history for commit log
 
-      - name: Debug release directory contents (macOS only)
-        if: matrix.os == 'macos-latest'
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'  # Use the latest stable version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build macOS
         run: |
-          ls -R release
+          flutter build macos --release
+
+      - name: Package artifact
+        run: |
+          mkdir -p release
+          cp -R "build/macos/Build/Products/Release/Repo Manager.app" release/
         shell: bash
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: release/Repo Manager.app
+          retention-days: 1
+
       - name: Generate changelog
-        if: matrix.os == 'macos-latest'  # Run only once
         id: changelog
         run: |
           # Try to get the latest tag
@@ -87,23 +93,18 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
         shell: bash
 
-      - name: Create Release
-        if: matrix.os == 'macos-latest'  # Run only once
-        uses: softprops/action-gh-release@v2
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-macos]  # Wait for both build jobs to complete
+    steps:
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
         with:
-          tag_name: v${{ github.run_number }}
-          name: Release v${{ github.run_number }}
-          body: |
-            ## Changes
-            ${{ steps.changelog.outputs.changelog }}
-            
-            ## Artifacts
-            - Windows: repomanager.exe
-            - macOS: Repo Manager.app
-          files: |
-            release/repomanager.exe
-            release/Repo\ Manager.app
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: windows-release
+          path: release
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-release
+          path:
