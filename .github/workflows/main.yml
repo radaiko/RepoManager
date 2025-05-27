@@ -9,49 +9,17 @@ on:
         type: string
 
 permissions:
-  contents: write  # Required for creating releases, commits, and pushes
+  contents: write  # Required for creating releases
 
 jobs:
-  update-pubspec:
-    runs-on: ubuntu-latest
-    outputs:
-      commit_sha: ${{ steps.update.outputs.commit_sha }}
+  build-windows:
+    runs-on: windows-latest
     steps:
       - name: Checkout code at tag
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
           fetch-depth: 0
-
-      - name: Update pubspec.yaml version
-        id: update
-        run: |
-          TAG=${{ inputs.tag }}
-          # Remove 'v' prefix if present (e.g., v1.0.1 -> 1.0.1)
-          VERSION=${TAG#v}
-          sed -i "s/version: .*/version: $VERSION/" pubspec.yaml
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add pubspec.yaml
-          git commit -m "Update pubspec.yaml to version $VERSION for tag $TAG"
-          git push
-          COMMIT_SHA=$(git rev-parse HEAD)
-          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
-        shell: bash
-
-      - name: Debug pubspec.yaml
-        run: cat pubspec.yaml
-        shell: bash
-
-  build-windows:
-    runs-on: windows-latest
-    needs: update-pubspec
-    steps:
-      - name: Checkout code at updated commit
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ needs.update-pubspec.outputs.commit_sha }}  # Use updated commit
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -63,7 +31,7 @@ jobs:
 
       - name: Build Windows
         run: |
-          flutter build windows --release
+          flutter build windows --release --build-name=${{ inputs.tag }} --build-number=${{ inputs.tag }}
 
       - name: Package artifact
         run: |
@@ -80,15 +48,14 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
-    needs: update-pubspec
     outputs:
       changelog: ${{ steps.changelog.outputs.changelog }}
     steps:
-      - name: Checkout code at updated commit
+      - name: Checkout code at tag
         uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.tag }}
           fetch-depth: 0
-          ref: ${{ needs.update-pubspec.outputs.commit_sha }}  # Use updated commit
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -100,7 +67,7 @@ jobs:
 
       - name: Build macOS
         run: |
-          flutter build macos --release
+          flutter build macos --release --build-name=${{ inputs.tag }} --build-number=${{ inputs.tag }}
 
       - name: Package artifact
         run: |
