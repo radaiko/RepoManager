@@ -181,7 +181,7 @@ class AutoAnalyzer {
       final sw = Stopwatch()..start();
 
       // Perform the analysis
-      Hub.analyze();
+      await Hub.analyze();
 
       sw.stop();
       Logger.info(

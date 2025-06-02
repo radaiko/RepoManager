@@ -32,6 +32,8 @@ class Repo {
     orElse: () => Branch(this, _mainBranchName),
   );
 
+  bool isAnalyzing = false;
+
   // ---------------------------------------------------------------------------
   // Constructor
   // ---------------------------------------------------------------------------
@@ -72,17 +74,20 @@ class Repo {
   // ---------------------------------------------------------------------------
   // Interface
   // ---------------------------------------------------------------------------
-  void analyze() {
+  Future<void> analyze() async {
     Logger.info("Analyzing all branches for repo $name...");
+    isAnalyzing = true;
+    AutoAnalyzer.notify();
     var sw = Stopwatch();
     sw.start();
     for (var branch in branches) {
-      branch.analyze();
+      await branch.analyze();
     }
     sw.stop();
     Logger.info(
       "Analysis completed for repo $name in ${sw.elapsedHumanReadable} s",
     );
+    isAnalyzing = false;
     AutoAnalyzer.notify();
   }
 
@@ -147,7 +152,7 @@ class Branch {
     return 'Branch{name: $name}';
   }
 
-  void analyze() async {
+  Future<void> analyze() async {
     var sw = Stopwatch();
     sw.start();
     _unstagedChangedFilePaths = await Git.getUnstagedFilePaths(_owner.path);

@@ -36,14 +36,16 @@ jobs:
       - name: Package artifact
         run: |
           mkdir -p release
-          cp -R build/windows/x64/runner/Release/repo_manager.exe release/
+          cp -R build/windows/x64/runner/Release/ release/win
+          cd release
+          7z a -tzip repo-manager-windows.zip win/*
         shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: release/repo_manager.exe
+          path: release/repo-manager-windows.zip
           retention-days: 1
 
   build-macos:
@@ -72,14 +74,16 @@ jobs:
       - name: Package artifact
         run: |
           mkdir -p release
-          cp -R "build/macos/Build/Products/Release/Repo Manager.app" release/
+          cp -R "build/macos/Build/Products/Release/Repo Manager.app" release/macos/
+          cd release
+          zip -r repo-manager-macos.zip macos/
         shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-release
-          path: release/Repo Manager.app
+          path: release/repo-manager-macos.zip
           retention-days: 1
 
       - name: Generate changelog
@@ -109,17 +113,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: windows-release
-          path: release
+          path: ./
 
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
           name: macos-release
-          path: release
+          path: ./
 
       - name: Debug release directory contents
         run: |
-          ls -R release
+          ls -la
         shell: bash
 
       - name: Create Release
@@ -132,11 +136,11 @@ jobs:
             ${{ needs.build-macos.outputs.changelog }}
 
             ## Artifacts
-            - Windows: repo_manager.exe
-            - macOS: Repo Manager.app
+            - **repo-manager-windows.zip**: Windows executable and dependencies
+            - **repo-manager-macos.zip**: macOS application bundle
           files: |
-            release/repo_manager.exe
-            release/Repo\ Manager.app
+            repo-manager-windows.zip
+            repo-manager-macos.zip
           draft: false
           prerelease: false
         env:

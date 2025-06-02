@@ -55,11 +55,11 @@ class Hub {
     AutoAnalyzer.notify();
   }
 
-  static void analyze() {
+  static Future<void> analyze() async {
     Logger.info('Analyzing all folders...');
     for (var folder in _folders) {
       for (var repo in folder.repos) {
-        repo.analyze();
+        await repo.analyze();
       }
     }
     Logger.info('Analysis completed for all folders.');
