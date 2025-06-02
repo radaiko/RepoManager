@@ -141,23 +141,6 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _isAnalyzing = false;
       });
-      return;
-      // Show a brief notification when analysis completes
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.check_circle, color: Colors.green, size: 16),
-              SizedBox(width: 8),
-              Text('Repository analysis completed'),
-            ],
-          ),
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          width: 300,
-        ),
-      );
     }
   }
 
@@ -197,13 +180,6 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: const RepositoriesPage(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          AutoAnalyzer.performManualAnalysis();
-        },
-        tooltip: 'Analyze Repositories',
-        child: const Icon(Icons.analytics),
-      ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,

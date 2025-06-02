@@ -161,7 +161,7 @@ class _SettingsPageState extends State<SettingsPage> {
     Logger.debug("Building SettingsPage");
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -387,45 +387,6 @@ class _SettingsPageState extends State<SettingsPage> {
                               child: Text(_getLogLevelDisplayName(level)),
                             );
                           }).toList(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Auto Analysis Section
-                    Row(
-                      children: [
-                        const Text(
-                          'Auto Analysis: ',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        const SizedBox(width: 16),
-                        Switch(
-                          value: _autoAnalysisEnabled,
-                          onChanged: _updateAutoAnalysis,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Analysis Interval Slider
-                    Row(
-                      children: [
-                        const Text(
-                          'Analysis Interval (m): ',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Slider(
-                            value: _analysisInterval.toDouble(),
-                            onChanged: (value) =>
-                                _updateAnalysisInterval(value.toInt()),
-                            min: 1,
-                            max: 60,
-                            divisions: 11,
-                            label: _analysisInterval.toString(),
-                          ),
                         ),
                       ],
                     ),
