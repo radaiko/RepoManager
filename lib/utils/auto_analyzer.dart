@@ -180,8 +180,8 @@ class AutoAnalyzer {
       Logger.info('Starting automatic analysis of all repositories...');
       final sw = Stopwatch()..start();
 
-      // Perform the analysis
-      await Hub.analyze();
+      // Perform the progressive analysis to keep UI responsive
+      await Hub.startProgressiveAnalysis();
 
       sw.stop();
       Logger.info(

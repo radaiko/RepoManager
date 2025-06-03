@@ -65,9 +65,9 @@ class Repo {
     }
     sw.stop();
     Logger.debug(
-      "Repo $name created and pre analyzed in ${sw.elapsedHumanReadable}",
+      "Repo $name created and initialized in ${sw.elapsedHumanReadable}",
     );
-    analyze();
+    // Note: analyze() is now called separately via progressive analysis
     AutoAnalyzer.notify();
   }
 
