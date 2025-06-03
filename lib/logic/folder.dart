@@ -23,6 +23,28 @@ class Folder {
   // Interface
   // ---------------------------------------------------------------------------
 
+  /// Starts progressive analysis of all repos in this folder
+  Future<void> startProgressiveAnalysis() async {
+    Logger.info('Starting progressive analysis for folder: $path');
+
+    // Analyze repos one by one with small delays to keep UI responsive
+    for (int i = 0; i < _repos.length; i++) {
+      final repo = _repos[i];
+      Logger.debug(
+        'Progressive analysis: ${i + 1}/${_repos.length} - ${repo.name}',
+      );
+
+      await repo.analyze();
+
+      // Small delay between repos to keep UI responsive
+      if (i < _repos.length - 1) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+
+    Logger.info('Progressive analysis completed for folder: $path');
+  }
+
   // ---------------------------------------------------------------------------
   // Implementation
   // ---------------------------------------------------------------------------
